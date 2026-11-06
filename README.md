@@ -11,6 +11,14 @@ npm run dev
 
 The app starts in **Simulation** mode and works without hardware or cloud credentials. Its synthetic Metrovale dataset is labelled as demonstration data. Alert acknowledgements persist in browser storage.
 
+## Languages
+
+The interface supports English, Tamil, Kannada, and Hindi. Use the language selector on the sign-in screen or dashboard; your choice is saved in this browser and restored on your next visit.
+
+## Playwright MCP (VS Code)
+
+The workspace MCP server is configured in [`.vscode/mcp.json`](./.vscode/mcp.json). VS Code runs `npx -y @playwright/mcp@latest` when you start the **playwright** server from the MCP controls; Node.js/npm must be available on your PATH. The package was verified to launch. This setup is project-scoped and does not add a dependency to the app.
+
 ## Demo sign-in
 
 The welcome screen includes two prototype-only accounts. Select an account there to fill the login form:
@@ -35,11 +43,13 @@ The schema includes profiles, zones, infrastructure, water and energy readings, 
 
 - Overview: network KPIs, resource trends, alerts and data-driven operational insights.
 - Water and energy management: zone filters, infrastructure/pump tables and interactive charts.
+- Reservoir flow simulator: interactive inflow, recirculation and demand valves, a manual level control, live volume/flow/power readouts and pause/reset controls. This accelerated browser-only demonstration is a simplified model, not live telemetry or a control interface for physical equipment.
 - Demand forecasting: 7/15/30-day rolling-mean and trend baseline with an uncertainty band; this is explicitly not an ML model.
 - Optimisation: a weighted search over feasible pump-concurrency schedules with supply, capacity, reservoir and reserve validation. It balances daily flow across selected operating hours and scores estimated part-load and concurrent-pump energy penalties; the default objective gives energy a 60% weight, with a one-click energy-priority preset. Energy-efficiency and pressure-related loss reduction values are modelled estimates, not measured savings, and should be calibrated with pump telemetry before operational use.
 - Infrastructure map: Leaflet/OpenStreetMap map with selectable demonstration assets.
 - Sustainability: emissions, renewable share, intensity metrics and calculation formulas.
 - Reports: filtered CSV and PDF exports.
+- NEXUS assistant: an on-device chat helper for current dashboard metrics, alerts, zone losses, forecasts and infrastructure. It uses simple topic matching rather than an external AI service, so no API key or data sharing is required.
 
 ## Build
 

@@ -16,6 +16,9 @@ import {
 } from './data'
 import { optimize, type OptimizationInput, type OptimizationResult } from './optimization'
 import { isSupabaseConfigured, supabase } from './supabase'
+import Chatbot from './Chatbot'
+import ReservoirDemo from './ReservoirDemo'
+import { LanguageSelector, LocalizationProvider, useLocalization } from './i18n'
 import './App.css'
 
 type PageId = 'overview' | 'water' | 'energy' | 'forecast' | 'optimization' | 'map' | 'sustainability' | 'reports' | 'settings'
@@ -70,11 +73,13 @@ function downloadCsv(filename: string, rows: (string | number)[][]) {
 }
 
 function Badge({ children, tone = 'muted' }: { children: React.ReactNode; tone?: 'muted' | 'green' | 'amber' | 'red' | 'blue' }) {
-  return <span className={`badge badge-${tone}`}><span className="badge-dot" />{children}</span>
+  const { t } = useLocalization()
+  return <span className={`badge badge-${tone}`}><span className="badge-dot" />{typeof children === 'string' ? t(children) : children}</span>
 }
 
 function SectionTitle({ title, action }: { title: string; action?: React.ReactNode }) {
-  return <div className="section-title"><h2>{title}</h2>{action}</div>
+  const { t } = useLocalization()
+  return <div className="section-title"><h2>{t(title)}</h2>{action}</div>
 }
 
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -92,45 +97,47 @@ function LoginPage({ configured, loading, email, setEmail, password, setPassword
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void
   onContinueDemo: () => void
 }) {
+  const { t } = useLocalization()
   return (
     <main className="login-page">
       <section className="login-card">
+        <LanguageSelector />
         <div className="login-brand">
           <div className="brand-mark"><Droplets size={18} /><Zap size={10} className="brand-bolt" /></div>
           <div className="brand-name">nexus<span>URBAN SYSTEMS</span></div>
         </div>
         <div className="login-heading">
-          <span className="eyebrow">CITY OPERATIONS / METROVALE</span>
-          <h1>Welcome back</h1>
-          <p>Sign in to your urban systems workspace.</p>
+          <span className="eyebrow">{t('CITY OPERATIONS / METROVALE')}</span>
+          <h1>{t('Welcome back')}</h1>
+          <p>{t('Sign in to your urban systems workspace.')}</p>
         </div>
         {loading ? <div className="login-message" role="status">Restoring your session…</div> : (
           <form className="login-form" onSubmit={onSubmit}>
-            <label>Email address
+            <label>{t('Email address')}
               <input type="email" autoComplete="username" placeholder="you@city.gov" required value={email} onChange={(event) => setEmail(event.target.value)} />
             </label>
-            <label>Password
-              <input type="password" autoComplete="current-password" placeholder="Enter your password" required value={password} onChange={(event) => setPassword(event.target.value)} />
+            <label>{t('Password')}
+              <input type="password" autoComplete="current-password" placeholder={t('Enter your password')} required value={password} onChange={(event) => setPassword(event.target.value)} />
             </label>
-            <button className="primary-btn login-submit" type="submit">Sign in <ArrowRight size={15} /></button>
+            <button className="primary-btn login-submit" type="submit">{t('Sign in')} <ArrowRight size={15} /></button>
             {message && <div className="login-message" role="alert">{message}</div>}
           </form>
         )}
         {!loading && <div className="demo-accounts">
-          <div className="demo-accounts-heading"><strong>Demo accounts</strong><span>Prototype access only</span></div>
+          <div className="demo-accounts-heading"><strong>{t('Demo accounts')}</strong><span>{t('Prototype access only')}</span></div>
           {demoAccounts.map((account) => <button className="demo-account" type="button" key={account.role} onClick={() => { setEmail(account.email); setPassword(account.password) }}>
-            <span className="demo-account-role">{account.label}</span>
-            <span><b>Email</b><code>{account.email}</code></span>
-            <span><b>Password</b><code>{account.password}</code></span>
-            <span className="demo-account-action">Use account</span>
+            <span className="demo-account-role">{t(account.label)}</span>
+            <span><b>{t('Email address')}</b><code>{account.email}</code></span>
+            <span><b>{t('Password')}</b><code>{account.password}</code></span>
+            <span className="demo-account-action">{t('Use account')}</span>
           </button>)}
-          <p>These credentials are built into this prototype and are not secure. {configured ? 'Real Supabase sign-in is also available.' : 'Supabase sign-in is not configured.'}</p>
+          <p>{t('These credentials are built into this prototype and are not secure.')} {configured ? t('Real Supabase sign-in is also available.') : t('Supabase sign-in is not configured.')}</p>
         </div>}
         {!loading && <div className="login-demo">
-          <span>Just exploring?</span>
-          <button type="button" className="outline-btn" onClick={onContinueDemo}>Continue with demo</button>
+          <span>{t('Just exploring?')}</span>
+          <button type="button" className="outline-btn" onClick={onContinueDemo}>{t('Continue with demo')}</button>
         </div>}
-        <p className="login-footnote">Secure access to water, energy and infrastructure insights.</p>
+        <p className="login-footnote">{t('Secure access to water, energy and infrastructure insights.')}</p>
       </section>
     </main>
   )
@@ -139,11 +146,12 @@ function LoginPage({ configured, loading, email, setEmail, password, setPassword
 function StatCard({ title, value, unit, change, changeLabel, icon: Icon, tone = 'cyan', spark = [4, 6, 5, 8, 6, 9, 8] }: {
   title: string; value: string; unit: string; change: string; changeLabel: string; icon: typeof Activity; tone?: string; spark?: number[]
 }) {
+  const { t } = useLocalization()
   return (
     <Card className="stat-card">
-      <div className="stat-head"><span>{title}</span><span className={`stat-icon ${tone}`}><Icon size={16} /></span></div>
-      <div className="stat-value">{value}<span>{unit}</span></div>
-      <div className="stat-foot"><span className="trend-positive"><ArrowDownRight size={13} /> {change}</span><span>{changeLabel}</span>
+      <div className="stat-head"><span>{t(title)}</span><span className={`stat-icon ${tone}`}><Icon size={16} /></span></div>
+      <div className="stat-value">{value}<span>{t(unit)}</span></div>
+      <div className="stat-foot"><span className="trend-positive"><ArrowDownRight size={13} /> {change}</span><span>{t(changeLabel)}</span>
         <svg className="sparkline" viewBox="0 0 74 24" preserveAspectRatio="none" aria-hidden="true"><polyline points={spark.map((v, i) => `${i * 12},${23 - v * 2}`).join(' ')} /></svg>
       </div>
     </Card>
@@ -156,7 +164,8 @@ const baseOptimisation: OptimizationInput = {
   waterLossPercent: 8.6, weights: { cost: 15, energy: 60, water: 15, carbon: 10 },
 }
 
-function App() {
+function AppContent() {
+  const { locale, t } = useLocalization()
   const [page, setPage] = useState<PageId>('overview')
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileMenu, setMobileMenu] = useState(false)
@@ -594,7 +603,7 @@ function App() {
   }
 
   return (
-    <div className={`app-shell ${sidebarOpen ? '' : 'sidebar-collapsed'}`}>
+    <div className={`app-shell page-${page} ${sidebarOpen ? '' : 'sidebar-collapsed'}`}>
       {mobileMenu && <button className="mobile-backdrop" aria-label="Close navigation" onClick={() => setMobileMenu(false)} />}
       <aside className={`sidebar ${mobileMenu ? 'mobile-open' : ''}`}>
         <div className="brand-row">
@@ -607,9 +616,9 @@ function App() {
           {navigation.map((item) => {
             const Icon = item.icon
             return <div key={item.id}>
-              {item.group && sidebarOpen && <div className="nav-group">{item.group}</div>}
-              <button className={`nav-item ${page === item.id ? 'active' : ''}`} onClick={() => { setPage(item.id); setMobileMenu(false) }} title={!sidebarOpen ? item.label : undefined}>
-                <Icon size={17} strokeWidth={1.8} /><span>{sidebarOpen && item.label}</span>{item.id === 'settings' && unreadCount > 0 && sidebarOpen && <i className="nav-indicator" />}
+              {item.group && sidebarOpen && <div className="nav-group">{t(item.group)}</div>}
+              <button className={`nav-item ${page === item.id ? 'active' : ''}`} onClick={() => { setPage(item.id); setMobileMenu(false) }} title={!sidebarOpen ? t(item.label) : undefined}>
+                <Icon size={17} strokeWidth={1.8} /><span>{sidebarOpen && t(item.label)}</span>{item.id === 'settings' && unreadCount > 0 && sidebarOpen && <i className="nav-indicator" />}
               </button>
             </div>
           })}
@@ -623,27 +632,47 @@ function App() {
       <main className="main-panel">
         <header className="topbar">
           <button className="icon-btn mobile-menu-btn" aria-label="Open menu" onClick={() => setMobileMenu(true)}><Menu size={19} /></button>
-          <div className="breadcrumb">NEXUS <ChevronRight size={12} /> <span>{current.title}</span></div>
+          <div className="breadcrumb">NEXUS <ChevronRight size={12} /> <span>{t(current.title)}</span></div>
           <div className="topbar-actions">
-            <div className="top-search"><Search size={15} /><input value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && search.trim()) { const match = infrastructure.find((asset) => asset.name.toLowerCase().includes(search.toLowerCase()) || asset.id.toLowerCase().includes(search.toLowerCase())); if (match) { setAssetDetail(match); setPage('map') } else { const matchedZone = zones.find((zone) => zone.name.toLowerCase().includes(search.toLowerCase())); if (matchedZone && matchedZone.name !== 'All zones') { setZoneFilter(matchedZone.name); setPage('water') } else showToast('No matching asset or zone found.') } } }} placeholder="Search assets or zones..." /><kbd>↵</kbd></div>
-            <div className="mode-switch"><button className={dataMode === 'simulation' ? 'selected' : ''} onClick={() => toggleDataMode('simulation')}><span className="sim-dot" />Simulation</button><button className={dataMode === 'connected' ? 'selected' : ''} onClick={() => toggleDataMode('connected')}><span className="connected-dot" />Connected</button></div>
+            <LanguageSelector />
+            <div className="top-search"><Search size={15} /><input value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && search.trim()) { const match = infrastructure.find((asset) => asset.name.toLowerCase().includes(search.toLowerCase()) || asset.id.toLowerCase().includes(search.toLowerCase())); if (match) { setAssetDetail(match); setPage('map') } else { const matchedZone = zones.find((zone) => zone.name.toLowerCase().includes(search.toLowerCase())); if (matchedZone && matchedZone.name !== 'All zones') { setZoneFilter(matchedZone.name); setPage('water') } else showToast('No matching asset or zone found.') } } }} placeholder={t('Search assets or zones...')} /><kbd>↵</kbd></div>
+            <div className="mode-switch"><button className={dataMode === 'simulation' ? 'selected' : ''} onClick={() => toggleDataMode('simulation')}><span className="sim-dot" />{t('Simulation')}</button><button className={dataMode === 'connected' ? 'selected' : ''} onClick={() => toggleDataMode('connected')}><span className="connected-dot" />{t('Connected')}</button></div>
             <button className="icon-btn notification-btn" aria-label={`${unreadCount} unread alerts`} onClick={() => setPage('overview')}><Bell size={17} />{unreadCount > 0 && <i>{unreadCount}</i>}</button>
             <button className="icon-btn refresh-btn" aria-label="Refresh data" onClick={() => refreshData()} disabled={refreshing}><RefreshCw size={16} className={refreshing ? 'spinning' : ''} /></button>
           </div>
         </header>
         <div className="page-content">
-          <div className="page-heading"><div><div className="eyebrow"><span className="eyebrow-dot" />CITY OPERATIONS / METROVALE</div><h1>{current.title}</h1><p>{current.subtitle}</p></div><div className="heading-right"><div className="time-stamp"><span className="live-dot" />{now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}<span className="divider">/</span> {dataMode === 'connected' ? 'CONNECTED DATA' : 'DEMO ENVIRONMENT'}</div>{page === 'overview' && <button className="primary-btn" onClick={() => setPage('optimization')}><Play size={14} fill="currentColor" /> Run optimisation</button>}</div></div>
+          <div className="page-heading"><div><div className="eyebrow"><span className="eyebrow-dot" />{t('CITY OPERATIONS / METROVALE')}</div><h1>{t(current.title)}</h1><p>{t(current.subtitle)}</p></div><div className="heading-right"><div className="time-stamp"><span className="live-dot" />{now.toLocaleDateString({ en: 'en-US', ta: 'ta-IN', kn: 'kn-IN', hi: 'hi-IN' }[locale], { weekday: 'short', month: 'short', day: 'numeric' })}<span className="divider">/</span> {t(dataMode === 'connected' ? 'CONNECTED DATA' : 'DEMO ENVIRONMENT')}</div>{page === 'overview' && <button className="primary-btn" onClick={() => setPage('optimization')}><Play size={14} fill="currentColor" /> {t('Run optimisation')}</button>}</div></div>
           {renderPage()}
           <footer className="page-footer"><span>© 2025 NEXUS Urban Systems</span><span><span className="sim-dot" />{dataMode === 'connected' ? 'Connected water & energy readings · other indicators remain simulated' : 'Demonstration data · Indicative values only'}</span><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">Map © OpenStreetMap</a></footer>
         </div>
       </main>
       {assetDetail && <div className="modal-backdrop" onClick={() => setAssetDetail(null)}><div className="asset-modal" onClick={(event) => event.stopPropagation()}><button className="icon-btn modal-close" onClick={() => setAssetDetail(null)} aria-label="Close"><X size={16} /></button><div className="asset-modal-top"><span className="asset-kind-icon"><Factory size={18} /></span><Badge tone="green">{assetDetail.status}</Badge></div><div className="eyebrow">{assetDetail.type} / {assetDetail.zone}</div><h2>{assetDetail.name}</h2><p>{assetDetail.id} · Last telemetry sync 4 minutes ago</p><div className="asset-detail-grid"><div><span>Water throughput</span><strong>{assetDetail.throughput} ML/day</strong></div><div><span>Energy use</span><strong>{assetDetail.energy} MWh/day</strong></div><div><span>Efficiency</span><strong>{assetDetail.efficiency}%</strong></div><div><span>Open alerts</span><strong>{assetDetail.alerts}</strong></div></div><div className="asset-modal-note"><ShieldCheck size={15} /> Asset telemetry is simulated for this demonstration.</div></div></div>}
+      <Chatbot
+        water={connectedSummary?.waterMl ?? 228.4}
+        supply={connectedSummary?.supplyMl ?? 249.8}
+        energy={connectedSummary?.energyMwh ?? 93.8}
+        renewable={connectedSummary?.renewableMwh ?? 24.6}
+        intensity={(connectedSummary?.waterMl ?? 228.4) > 0 ? (connectedSummary?.energyMwh ?? 93.8) * 1000 / (connectedSummary?.waterMl ?? 228.4) : 0}
+        lossPercent={(connectedSummary?.supplyMl ?? 249.8) > 0 ? ((connectedSummary?.supplyMl ?? 249.8) - (connectedSummary?.waterMl ?? 228.4)) / (connectedSummary?.supplyMl ?? 249.8) * 100 : 0}
+        emissions={Math.max(0, (connectedSummary?.energyMwh ?? 93.8) - (connectedSummary?.renewableMwh ?? 24.6)) * 0.338}
+        forecast={{ value: forecastData.projected[0]?.forecast ?? 0, kind: forecastKind, unit: forecastKind === 'Water demand' ? 'ML/day' : 'MWh/day' }}
+        dataMode={dataMode}
+        zones={zones}
+        alerts={alertsList}
+        infrastructure={infrastructure}
+      />
       {toast && <div className="toast"><Check size={16} />{toast}<button onClick={() => setToast('')}><X size={13} /></button></div>}
     </div>
   )
 }
 
+export default function App() {
+  return <LocalizationProvider><AppContent /></LocalizationProvider>
+}
+
 function Overview({ onNavigate, alertsList, onReadAlert, insights, resourceView, setResourceView, series, summary, connected }: { onNavigate: (page: PageId) => void; alertsList: AlertItem[]; onReadAlert: (id: string) => void; insights: { icon: typeof Activity; tone: string; title: string; body: string }[]; resourceView: 'Water' | 'Energy' | 'Combined'; setResourceView: (value: 'Water' | 'Energy' | 'Combined') => void; series: typeof dailySeries; summary: ConnectedSummary | null; connected: boolean }) {
+  const { t } = useLocalization()
   const water = summary?.waterMl ?? 228.4
   const supply = summary?.supplyMl ?? 249.8
   const energy = summary?.energyMwh ?? 93.8
@@ -664,45 +693,45 @@ function Overview({ onNavigate, alertsList, onReadAlert, insights, resourceView,
       </div>
       <div className="overview-grid">
         <Card className="chart-card overview-trend">
-          <SectionTitle title="Resource consumption" action={<div className="tab-switch">{(['Water', 'Energy', 'Combined'] as const).map((view) => <button key={view} className={resourceView === view ? 'selected' : ''} onClick={() => setResourceView(view)}>{view}</button>)}</div>} />
-          <div className="chart-legend">{resourceView !== 'Energy' && <span><i className="legend-water" /> Water demand <b>{number(water, 1)} ML</b></span>}{resourceView !== 'Water' && <span><i className="dot-blue" /> Energy demand <b>{number(energy, 1)} MWh</b></span>}{resourceView === 'Water' && <span><i className="legend-line" /> 7-day average <b>224 ML</b></span>}<span className="muted-right">LAST 14 DAYS</span></div>
+          <SectionTitle title="Resource consumption" action={<div className="tab-switch">{(['Water', 'Energy', 'Combined'] as const).map((view) => <button key={view} className={resourceView === view ? 'selected' : ''} onClick={() => setResourceView(view)}>{t(view)}</button>)}</div>} />
+          <div className="chart-legend">{resourceView !== 'Energy' && <span><i className="legend-water" /> {t('Water demand')} <b>{number(water, 1)} ML</b></span>}{resourceView !== 'Water' && <span><i className="dot-blue" /> {t('Energy demand')} <b>{number(energy, 1)} MWh</b></span>}{resourceView === 'Water' && <span><i className="legend-line" /> {t('7-day average')} <b>224 ML</b></span>}<span className="muted-right">{t('LAST 14 DAYS')}</span></div>
           <div className="chart-large"><ResponsiveContainer width="100%" height="100%"><AreaChart data={series.slice(-14)} margin={{ left: -20, right: 7, top: 10, bottom: 0 }}><defs><linearGradient id="waterFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#20c5d5" stopOpacity={0.22} /><stop offset="95%" stopColor="#20c5d5" stopOpacity={0} /></linearGradient><linearGradient id="energyFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#3478f6" stopOpacity={0.2} /><stop offset="95%" stopColor="#3478f6" stopOpacity={0} /></linearGradient></defs><CartesianGrid stroke="#202d3f" vertical={false} /><XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fill: '#71839a', fontSize: 10 }} /><YAxis tickLine={false} axisLine={false} tick={{ fill: '#71839a', fontSize: 10 }} /><Tooltip {...chartTooltip} />{resourceView !== 'Energy' && <Area type="monotone" dataKey="water" name="Water demand (ML)" stroke="#22c5d3" strokeWidth={2} fill="url(#waterFill)" />}{resourceView !== 'Water' && <Area type="monotone" dataKey="energy" name="Energy demand (MWh)" stroke="#568bff" strokeWidth={2} fill="url(#energyFill)" />}{resourceView === 'Water' && <Line type="monotone" dataKey="average" name="7-day average" stroke="#90a0b2" strokeDasharray="4 5" dot={false} strokeWidth={1.5} />}</AreaChart></ResponsiveContainer></div>
-          <div className="chart-footnote"><span><i className={connected ? 'connected-dot' : 'sim-dot'} /> {connected ? 'Connected daily readings' : 'Simulated daily data'}</span><span>{connected ? 'Refresh for latest data' : 'Updated 4 min ago'}</span></div>
+          <div className="chart-footnote"><span><i className={connected ? 'connected-dot' : 'sim-dot'} /> {t(connected ? 'Connected daily readings' : 'Simulated daily data')}</span><span>{t(connected ? 'Refresh for latest data' : 'Updated 4 min ago')}</span></div>
         </Card>
         <Card className="chart-card alerts-card">
-          <SectionTitle title="System alerts" action={<button className="text-link" onClick={() => onNavigate('settings')}>View all <ArrowRight size={13} /></button>} />
-          <div className="alert-count"><strong>{alertsList.filter((item) => !item.read).length}</strong><span>active notifications</span><span className="alert-window">LAST 24H</span></div>
-          <div className="alert-list">{unread.length ? unread.map((alert) => <button className="alert-row" key={alert.id} onClick={() => onReadAlert(alert.id)}><span className={`alert-symbol ${alert.severity}`}><AlertTriangle size={15} /></span><span className="alert-text"><strong>{alert.title}</strong><span>{alert.description}</span><small>{alert.zone} <b>·</b> {alert.time}</small></span><ChevronRight size={14} /></button>) : <div className="empty-state">All caught up. No active alerts.</div>}</div>
-          <button className="outline-btn full-btn" onClick={() => onNavigate('settings')}>Open alert centre <ArrowRight size={13} /></button>
+          <SectionTitle title="System alerts" action={<button className="text-link" onClick={() => onNavigate('settings')}>{t('View all')} <ArrowRight size={13} /></button>} />
+          <div className="alert-count"><strong>{alertsList.filter((item) => !item.read).length}</strong><span>{t('active notifications')}</span><span className="alert-window">{t('LAST 24H')}</span></div>
+          <div className="alert-list">{unread.length ? unread.map((alert) => <button className="alert-row" key={alert.id} onClick={() => onReadAlert(alert.id)}><span className={`alert-symbol ${alert.severity}`}><AlertTriangle size={15} /></span><span className="alert-text"><strong>{alert.title}</strong><span>{alert.description}</span><small>{alert.zone} <b>·</b> {alert.time}</small></span><ChevronRight size={14} /></button>) : <div className="empty-state">{t('All caught up. No active alerts.')}</div>}</div>
+          <button className="outline-btn full-btn" onClick={() => onNavigate('settings')}>{t('Open alert centre')} <ArrowRight size={13} /></button>
         </Card>
         <Card className="chart-card energy-chart">
-          <SectionTitle title="Energy profile" action={<span className="select-simple">THIS WEEK</span>} />
-          <div className="energy-total"><strong>{number(energy, 1)} <small>MWh</small></strong><span className="trend-positive"><ArrowDownRight size={13} /> 4.1%</span><small>{connected ? 'connected reading' : 'vs previous period'}</small></div>
+          <SectionTitle title="Energy profile" action={<span className="select-simple">{t('THIS WEEK')}</span>} />
+          <div className="energy-total"><strong>{number(energy, 1)} <small>MWh</small></strong><span className="trend-positive"><ArrowDownRight size={13} /> 4.1%</span><small>{t(connected ? 'connected reading' : 'vs previous period')}</small></div>
           <div className="chart-medium"><ResponsiveContainer width="100%" height="100%"><ComposedChart data={series.slice(-7)} margin={{ left: -20, right: 4, top: 8, bottom: 0 }}><CartesianGrid stroke="#202d3f" vertical={false} /><XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fill: '#71839a', fontSize: 10 }} /><YAxis tickLine={false} axisLine={false} tick={{ fill: '#71839a', fontSize: 10 }} /><Tooltip {...chartTooltip} /><Bar dataKey="pumping" name="Pumping" stackId="energy" fill="#3478f6" radius={[0, 0, 0, 0]} /><Bar dataKey="treatment" name="Treatment" stackId="energy" fill="#19b9c9" /><Bar dataKey="distribution" name="Distribution" stackId="energy" fill="#8d7aff" radius={[4, 4, 0, 0]} /><Line dataKey="renewable" name="Renewables" stroke="#42d78a" strokeWidth={2} dot={false} /></ComposedChart></ResponsiveContainer></div>
-          <div className="chart-footnote legend-inline"><span><i className="dot-blue" /> Pumping</span><span><i className="dot-cyan" /> Treatment</span><span><i className="dot-purple" /> Distribution</span><span><i className="dot-green" /> Renewables</span></div>
+          <div className="chart-footnote legend-inline"><span><i className="dot-blue" /> {t('Pumping')}</span><span><i className="dot-cyan" /> {t('Treatment')}</span><span><i className="dot-purple" /> {t('Distribution')}</span><span><i className="dot-green" /> {t('Renewables')}</span></div>
         </Card>
         <Card className="chart-card efficiency-card">
-          <SectionTitle title="Network efficiency" action={<button className="icon-btn mini-btn" title="View sustainability formulas" onClick={() => onNavigate('sustainability')}><CircleHelp size={15} /></button>} />
-          <div className="efficiency-score"><div className="ring"><span>82<small>/100</small></span></div><div><strong>Good performance</strong><span>+3 pts vs last month</span><Badge tone="green">ON TRACK</Badge></div></div>
+          <SectionTitle title="Network efficiency" action={<button className="icon-btn mini-btn" title={t('View sustainability formulas')} onClick={() => onNavigate('sustainability')}><CircleHelp size={15} /></button>} />
+          <div className="efficiency-score"><div className="ring"><span>82<small>/100</small></span></div><div><strong>{t('Good performance')}</strong><span>{t('+3 pts vs last month')}</span><Badge tone="green">ON TRACK</Badge></div></div>
           <div className="efficiency-metrics">{[
             ['Water recovery', '91.4%', 91], ['Pump efficiency', '84.2%', 84], ['Renewable coverage', '22.4%', 22],
           ].map(([label, value, width]) => <div className="eff-row" key={label as string}><div><span>{label}</span><b>{value}</b></div><div className="progress-track"><i style={{ width: `${width}%` }} /></div></div>)}</div>
-          <button className="text-link efficiency-link" onClick={() => onNavigate('sustainability')}>View sustainability report <ArrowRight size={13} /></button>
+          <button className="text-link efficiency-link" onClick={() => onNavigate('sustainability')}>{t('View sustainability report')} <ArrowRight size={13} /></button>
         </Card>
         <Card className="summary-card">
-          <div className="summary-head"><div><div className="eyebrow">NETWORK SNAPSHOT</div><h2>Operational summary</h2></div><span className="summary-map-icon"><MapPin size={16} /></span></div>
+          <div className="summary-head"><div><div className="eyebrow">{t('NETWORK SNAPSHOT')}</div><h2>{t('Operational summary')}</h2></div><span className="summary-map-icon"><MapPin size={16} /></span></div>
           <div className="summary-grid">
-            <div><span>Current water demand</span><strong>{number(water, 1)} <small>ML/day</small></strong></div>
-            <div><span>Available supply</span><strong>{number(summary?.supplyMl ?? 270, 1)} <small>ML/day</small></strong></div>
-            <div><span>Pumping stations</span><strong>12 <small className="status-ok">· 11 online</small></strong></div>
-            <div><span>Solar generation</span><strong>{number(renewable, 1)} <small>MWh today</small></strong></div>
+            <div><span>{t('Current water demand')}</span><strong>{number(water, 1)} <small>ML/day</small></strong></div>
+            <div><span>{t('Available supply')}</span><strong>{number(summary?.supplyMl ?? 270, 1)} <small>ML/day</small></strong></div>
+            <div><span>{t('Pumping stations')}</span><strong>12 <small className="status-ok">· 11 {t('online')}</small></strong></div>
+            <div><span>{t('Solar generation')}</span><strong>{number(renewable, 1)} <small>{t('MWh today')}</small></strong></div>
           </div>
-          <button className="summary-map-link" onClick={() => onNavigate('map')}>Explore infrastructure map <ArrowRight size={14} /></button>
+          <button className="summary-map-link" onClick={() => onNavigate('map')}>{t('Explore infrastructure map')} <ArrowRight size={14} /></button>
         </Card>
         <Card className="insights-card">
-          <div className="insight-heading"><span className="insight-icon"><Sparkles size={16} /></span><div><h2>Intelligent insights</h2><span>Based on your network data</span></div><Badge tone="blue">3 INSIGHTS</Badge></div>
-          <div className="insight-items">{insights.map((item) => { const Icon = item.icon; return <div className="insight-item" key={item.title}><span className={`insight-mini ${item.tone}`}><Icon size={14} /></span><div><strong>{item.title}</strong><p>{item.body}</p></div></div> })}</div>
-          <button className="text-link" onClick={() => onNavigate('optimization')}>Explore optimisation opportunities <ArrowRight size={13} /></button>
+          <div className="insight-heading"><span className="insight-icon"><Sparkles size={16} /></span><div><h2>{t('Intelligent insights')}</h2><span>{t('Based on your network data')}</span></div><Badge tone="blue">3 INSIGHTS</Badge></div>
+          <div className="insight-items">{insights.map((item) => { const Icon = item.icon; return <div className="insight-item" key={item.title}><span className={`insight-mini ${item.tone}`}><Icon size={14} /></span><div><strong>{t(item.title)}</strong><p>{t(item.body)}</p></div></div> })}</div>
+          <button className="text-link" onClick={() => onNavigate('optimization')}>{t('Explore optimisation opportunities')} <ArrowRight size={13} /></button>
         </Card>
       </div>
     </>
@@ -710,6 +739,7 @@ function Overview({ onNavigate, alertsList, onReadAlert, insights, resourceView,
 }
 
 function WaterPage({ data, range, setRange, zone, setZone, assets, summary, onNavigate }: { data: typeof dailySeries; range: string; setRange: (value: string) => void; zone: string; setZone: (value: string) => void; assets: Infrastructure[]; summary: ConnectedSummary | null; onNavigate: (page: PageId) => void }) {
+  const { t } = useLocalization()
   const exportAssets = () => downloadCsv(`nexus-water-assets-${new Date().toISOString().slice(0, 10)}.csv`, [
     ['Asset ID', 'Zone', 'Daily supply (ML)', 'Consumption (ML)', 'Reservoir', 'Leakage status', 'Operational status'],
     ...assets.map((asset) => [asset.id, asset.zone, asset.throughput, Number((asset.throughput * 0.914).toFixed(1)), asset.type === 'Reservoir' ? '68.2%' : 'N/A', asset.alerts > 0 ? 'Review' : 'Normal', asset.status]),
@@ -719,7 +749,7 @@ function WaterPage({ data, range, setRange, zone, setZone, assets, summary, onNa
   const lost = Math.max(0, supplied - consumed)
   return (
     <>
-      <div className="page-toolbar"><div className="filter-set"><label>ZONE <select value={zone} onChange={(event) => setZone(event.target.value)}><option>All zones</option>{zones.filter((item) => item.name !== 'All zones').map((item) => <option key={item.name}>{item.name}</option>)}</select></label><label>PERIOD <select value={range} onChange={(event) => setRange(event.target.value)}><option>Last 7 days</option><option>Last 30 days</option><option>Last 90 days</option></select></label></div><Badge tone="green">NETWORK NORMAL</Badge></div>
+      <div className="page-toolbar"><div className="filter-set"><label>{t('ZONE')} <select value={zone} onChange={(event) => setZone(event.target.value)}><option value="All zones">{t('All zones')}</option>{zones.filter((item) => item.name !== 'All zones').map((item) => <option key={item.name}>{item.name}</option>)}</select></label><label>{t('PERIOD')} <select value={range} onChange={(event) => setRange(event.target.value)}>{['Last 7 days', 'Last 30 days', 'Last 90 days'].map((value) => <option key={value} value={value}>{t(value)}</option>)}</select></label></div><Badge tone="green">NETWORK NORMAL</Badge></div>
       <div className="stats-grid four-stats">
         <StatCard title="Water supplied" value={number(supplied, 1)} unit="ML / day" change={summary ? 'LIVE' : '1.8%'} changeLabel={summary ? 'connected reading' : 'vs last month'} icon={Droplets} />
         <StatCard title="Water consumed" value={number(consumed, 1)} unit="ML / day" change={summary ? 'LIVE' : '2.4%'} changeLabel={summary ? 'connected reading' : 'vs last month'} icon={Waves} tone="blue" />
@@ -727,11 +757,12 @@ function WaterPage({ data, range, setRange, zone, setZone, assets, summary, onNa
         <StatCard title="Water lost" value={number(lost, 1)} unit="ML / day" change={summary ? 'LIVE' : '0.8%'} changeLabel={summary ? 'calculated from readings' : 'vs last month'} icon={AlertTriangle} tone="amber" />
       </div>
       <div className="two-col">
-        <Card className="chart-card"><SectionTitle title="Water demand trend" action={<Badge tone="blue">ML / DAY</Badge>} /><div className="chart-large"><ResponsiveContainer width="100%" height="100%"><AreaChart data={data} margin={{ left: -20, right: 8, top: 8 }}><defs><linearGradient id="waterPageFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#20c5d5" stopOpacity={0.2} /><stop offset="100%" stopColor="#20c5d5" stopOpacity={0} /></linearGradient></defs><CartesianGrid stroke="#202d3f" vertical={false} /><XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fill: '#71839a', fontSize: 10 }} /><YAxis tickLine={false} axisLine={false} tick={{ fill: '#71839a', fontSize: 10 }} /><Tooltip {...chartTooltip} /><Area type="monotone" dataKey="water" stroke="#22c5d3" strokeWidth={2} fill="url(#waterPageFill)" /></AreaChart></ResponsiveContainer></div></Card>
-        <Card className="chart-card"><SectionTitle title="Reservoir storage" action={<Badge tone="green">64.8% AVG.</Badge>} /><div className="chart-large"><ResponsiveContainer width="100%" height="100%"><AreaChart data={dailySeries.slice(-14)} margin={{ left: -18, right: 8, top: 8 }}><defs><linearGradient id="reservoirFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#8b75f8" stopOpacity={0.22} /><stop offset="100%" stopColor="#8b75f8" stopOpacity={0} /></linearGradient></defs><CartesianGrid stroke="#202d3f" vertical={false} /><XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fill: '#71839a', fontSize: 10 }} /><YAxis domain={[35, 90]} tickLine={false} axisLine={false} tick={{ fill: '#71839a', fontSize: 10 }} /><Tooltip {...chartTooltip} /><ReferenceLine y={40} stroke="#f87171" strokeDasharray="4 4" /><Area type="monotone" dataKey="storage" name="Storage (%)" stroke="#9b87ff" strokeWidth={2} fill="url(#reservoirFill)" /></AreaChart></ResponsiveContainer></div><div className="chart-footnote"><span><i className="legend-water" /> Storage level</span><span><i className="legend-red" /> Minimum operating threshold</span></div></Card>
-        <Card className="chart-card"><SectionTitle title="Distribution by zone" action={<span className="select-simple">TODAY</span>} /><div className="zone-bars">{zones.filter((item) => item.name !== 'All zones').map((item) => <div className="zone-bar-row" key={item.name}><span>{item.name}</span><div className="progress-track"><i style={{ width: `${Math.min(100, (item.demand / 86) * 100)}%` }} /></div><strong>{item.demand} ML</strong></div>)}</div></Card>
-        <Card className="chart-card loss-card"><SectionTitle title="Water loss analysis" action={<Badge tone="amber">ATTENTION</Badge>} /><div className="loss-summary"><div className="loss-number">8.6<span>%</span></div><div className="loss-copy"><strong>Non-revenue water</strong><span>Target threshold <b>&lt; 7.0%</b></span><span className="trend-positive"><ArrowDownRight size={13} /> 0.8% this month</span></div></div><div className="loss-bar"><span>249.8 ML supplied</span><div><i style={{ width: '91.4%' }} /><b /></div><span>228.4 ML consumed</span></div><div className="loss-foot"><span>21.4 ML estimated daily loss</span><button className="text-link" onClick={() => onNavigate('settings')}>View leakage alerts <ArrowRight size={12} /></button></div></Card>
+        <Card className="chart-card"><SectionTitle title="Water demand trend" action={<Badge tone="blue">ML / DAY</Badge>} /><div className="chart-large"><ResponsiveContainer width="100%" height="100%"><AreaChart data={data} margin={{ left: -20, right: 8, top: 8 }}><defs><linearGradient id="waterPageFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#20c5d5" stopOpacity={0.2} /><stop offset="100%" stopColor="#20c5d5" stopOpacity={0} /></linearGradient></defs><CartesianGrid stroke="#202d3f" vertical={false} /><XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fill: '#71839a', fontSize: 10 }} /><YAxis tickLine={false} axisLine={false} tick={{ fill: '#71839a', fontSize: 10 }} /><Tooltip {...chartTooltip} /><Area type="monotone" dataKey="water" name={t('Water demand')} stroke="#22c5d3" strokeWidth={2} fill="url(#waterPageFill)" /></AreaChart></ResponsiveContainer></div></Card>
+        <Card className="chart-card"><SectionTitle title="Reservoir storage" action={<Badge tone="green">64.8% AVG.</Badge>} /><div className="chart-large"><ResponsiveContainer width="100%" height="100%"><AreaChart data={dailySeries.slice(-14)} margin={{ left: -18, right: 8, top: 8 }}><defs><linearGradient id="reservoirFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#8b75f8" stopOpacity={0.22} /><stop offset="100%" stopColor="#8b75f8" stopOpacity={0} /></linearGradient></defs><CartesianGrid stroke="#202d3f" vertical={false} /><XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fill: '#71839a', fontSize: 10 }} /><YAxis domain={[35, 90]} tickLine={false} axisLine={false} tick={{ fill: '#71839a', fontSize: 10 }} /><Tooltip {...chartTooltip} /><ReferenceLine y={40} stroke="#f87171" strokeDasharray="4 4" /><Area type="monotone" dataKey="storage" name={t('Storage (%)')} stroke="#9b87ff" strokeWidth={2} fill="url(#reservoirFill)" /></AreaChart></ResponsiveContainer></div><div className="chart-footnote"><span><i className="legend-water" /> {t('Storage level')}</span><span><i className="legend-red" /> {t('Minimum operating threshold')}</span></div></Card>
+        <Card className="chart-card"><SectionTitle title="Distribution by zone" action={<span className="select-simple">{t('TODAY')}</span>} /><div className="zone-bars">{zones.filter((item) => item.name !== 'All zones').map((item) => <div className="zone-bar-row" key={item.name}><span>{t(item.name)}</span><div className="progress-track"><i style={{ width: `${Math.min(100, (item.demand / 86) * 100)}%` }} /></div><strong>{item.demand} ML</strong></div>)}</div></Card>
+        <Card className="chart-card loss-card"><SectionTitle title="Water loss analysis" action={<Badge tone="amber">ATTENTION</Badge>} /><div className="loss-summary"><div className="loss-number">8.6<span>%</span></div><div className="loss-copy"><strong>{t('Non-revenue water')}</strong><span>{t('Target threshold')} <b>&lt; 7.0%</b></span><span className="trend-positive"><ArrowDownRight size={13} /> {t('0.8% this month')}</span></div></div><div className="loss-bar"><span>249.8 ML {t('supplied')}</span><div><i style={{ width: '91.4%' }} /><b /></div><span>228.4 ML {t('consumed')}</span></div><div className="loss-foot"><span>21.4 ML {t('estimated daily loss')}</span><button className="text-link" onClick={() => onNavigate('settings')}>{t('View leakage alerts')} <ArrowRight size={12} /></button></div></Card>
       </div>
+      <ReservoirDemo />
       <Card className="table-card"><SectionTitle title="Water infrastructure" action={<div className="table-actions"><Badge tone="muted">{assets.length} ASSETS</Badge><button className="outline-btn" onClick={exportAssets}><Download size={13} /> Export</button></div>} /><div className="table-scroll"><table><thead><tr><th>ASSET ID</th><th>ZONE</th><th>DAILY SUPPLY</th><th>CONSUMPTION</th><th>RESERVOIR</th><th>LEAKAGE STATUS</th><th>OPERATIONAL</th></tr></thead><tbody>{assets.map((asset) => <tr key={asset.id}><td><span className="asset-table-id">{asset.id}</span></td><td>{asset.zone}</td><td>{asset.throughput} ML</td><td>{number(asset.throughput * 0.914, 1)} ML</td><td><span className="reservoir-cell">{asset.type === 'Reservoir' ? '68.2%' : '—'}</span></td><td><Badge tone={asset.alerts > 0 ? 'amber' : 'green'}>{asset.alerts > 0 ? 'Review' : 'Normal'}</Badge></td><td><Badge tone="green">{asset.status}</Badge></td></tr>)}</tbody></table></div></Card>
     </>
   )
@@ -762,6 +793,7 @@ function EnergyPage({ data, summary }: { data: typeof dailySeries; summary: Conn
 function ForecastPage({ kind, setKind, days, setDays, zone, setZone, historical, projected, mean, trend }: {
   kind: ForecastKind; setKind: (value: ForecastKind) => void; days: number; setDays: (value: number) => void; zone: string; setZone: (value: string) => void; historical: { day: string; actual: number }[]; projected: { day: string; forecast: number; lower: number; upper: number }[]; mean: number; trend: number
 }) {
+  const { t } = useLocalization()
   const exportForecast = () => downloadCsv(`nexus-${kind.toLowerCase().replaceAll(' ', '-')}-forecast.csv`, [
     ['Date', 'Forecast', 'Lower range', 'Upper range'],
     ...projected.map((item) => [item.day, item.forecast, item.lower, item.upper]),
@@ -770,31 +802,32 @@ function ForecastPage({ kind, setKind, days, setDays, zone, setZone, historical,
   const peak = projected.reduce((best, item) => item.forecast > best.forecast ? item : best, projected[0])
   return (
     <>
-      <Card className="forecast-controls"><div className="control-title"><div className="control-icon"><Activity size={17} /></div><div><strong>Forecast configuration</strong><span>Choose a demand series and horizon.</span></div></div><div className="forecast-selects"><label>FORECAST TYPE<select value={kind} onChange={(event) => setKind(event.target.value as ForecastKind)}><option>Water demand</option><option>Energy demand</option></select></label><label>FORECAST PERIOD<select value={days} onChange={(event) => setDays(Number(event.target.value))}><option value={7}>Next 7 days</option><option value={15}>Next 15 days</option><option value={30}>Next 30 days</option></select></label><label>URBAN ZONE<select value={zone} onChange={(event) => setZone(event.target.value)}><option>All zones</option>{zones.filter((item) => item.name !== 'All zones').map((item) => <option key={item.name}>{item.name}</option>)}</select></label></div><Badge tone="blue">SIMULATED BASELINE</Badge></Card>
+      <Card className="forecast-controls"><div className="control-title"><div className="control-icon"><Activity size={17} /></div><div><strong>{t('Forecast configuration')}</strong><span>{t('Choose a demand series and horizon.')}</span></div></div><div className="forecast-selects"><label>{t('FORECAST TYPE')}<select value={kind} onChange={(event) => setKind(event.target.value as ForecastKind)}><option value="Water demand">{t('Water demand')}</option><option value="Energy demand">{t('Energy demand')}</option></select></label><label>{t('FORECAST PERIOD')}<select value={days} onChange={(event) => setDays(Number(event.target.value))}>{[7, 15, 30].map((dayCount) => <option value={dayCount} key={dayCount}>{t(`Next ${dayCount} days`)}</option>)}</select></label><label>{t('URBAN ZONE')}<select value={zone} onChange={(event) => setZone(event.target.value)}><option value="All zones">{t('All zones')}</option>{zones.filter((item) => item.name !== 'All zones').map((item) => <option key={item.name} value={item.name}>{t(item.name)}</option>)}</select></label></div><Badge tone="blue">SIMULATED BASELINE</Badge></Card>
       <div className="stats-grid three-stats">
         <StatCard title="Forecast daily average" value={number(projected.reduce((sum, item) => sum + item.forecast, 0) / projected.length, 1)} unit={kind === 'Water demand' ? 'ML / day' : 'MWh / day'} change={`${trend >= 0 ? '+' : ''}${number(trend, 1)}`} changeLabel="daily trend" icon={Activity} />
         <StatCard title="Expected peak demand" value={number(peak.forecast, 1)} unit={kind === 'Water demand' ? 'ML / day' : 'MWh / day'} change={peak.day} changeLabel="projected peak date" icon={ArrowUpRight} tone="amber" />
         <StatCard title="Forecast confidence" value="88" unit="%" change="±6%" changeLabel="uncertainty range" icon={Gauge} tone="green" />
       </div>
-      <Card className="chart-card forecast-chart-card"><SectionTitle title={`${kind} forecast`} action={<Badge tone="muted">{days}-DAY HORIZON</Badge>} /><div className="chart-legend"><span><i className="legend-water" /> Historical actual</span><span><i className="legend-forecast" /> Forecast</span><span><i className="legend-confidence" /> Confidence range</span><span className="muted-right">SIMULATED DATA</span></div><div className="chart-very-large"><ResponsiveContainer width="100%" height="100%"><ComposedChart data={combined} margin={{ left: -20, right: 10, top: 15 }}><CartesianGrid stroke="#202d3f" vertical={false} /><XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fill: '#71839a', fontSize: 10 }} /><YAxis tickLine={false} axisLine={false} tick={{ fill: '#71839a', fontSize: 10 }} /><Tooltip {...chartTooltip} /><Area type="monotone" dataKey="upper" name="Upper estimate" stroke="none" fill="#22c5d3" fillOpacity={0.09} /><Area type="monotone" dataKey="lower" name="Lower estimate" stroke="none" fill="#111b2b" fillOpacity={1} /><Line type="monotone" dataKey="actual" name="Historical actual" stroke="#20c5d5" strokeWidth={2} dot={false} connectNulls={false} /><Line type="monotone" dataKey="forecast" name="Simulated forecast" stroke="#9b87ff" strokeWidth={2.2} strokeDasharray="5 4" dot={false} connectNulls={false} /></ComposedChart></ResponsiveContainer></div><div className="chart-footnote"><span>Baseline mean: <b>{number(mean, 1)} {kind === 'Water demand' ? 'ML/day' : 'MWh/day'}</b></span><span>Forecasts are indicative, not machine-learning predictions.</span></div></Card>
+      <Card className="chart-card forecast-chart-card"><SectionTitle title={`${t(kind)} forecast`} action={<Badge tone="muted">{days}-DAY HORIZON</Badge>} /><div className="chart-legend"><span><i className="legend-water" /> {t('Historical actual')}</span><span><i className="legend-forecast" /> {t('Forecast')}</span><span><i className="legend-confidence" /> {t('Confidence range')}</span><span className="muted-right">{t('SIMULATED DATA')}</span></div><div className="chart-very-large"><ResponsiveContainer width="100%" height="100%"><ComposedChart data={combined} margin={{ left: -20, right: 10, top: 15 }}><CartesianGrid stroke="#202d3f" vertical={false} /><XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fill: '#71839a', fontSize: 10 }} /><YAxis tickLine={false} axisLine={false} tick={{ fill: '#71839a', fontSize: 10 }} /><Tooltip {...chartTooltip} /><Area type="monotone" dataKey="upper" name={t('Upper estimate')} stroke="none" fill="#22c5d3" fillOpacity={0.09} /><Area type="monotone" dataKey="lower" name={t('Lower estimate')} stroke="none" fill="#111b2b" fillOpacity={1} /><Line type="monotone" dataKey="actual" name={t('Historical actual')} stroke="#20c5d5" strokeWidth={2} dot={false} connectNulls={false} /><Line type="monotone" dataKey="forecast" name={t('Simulated forecast')} stroke="#9b87ff" strokeWidth={2.2} strokeDasharray="5 4" dot={false} connectNulls={false} /></ComposedChart></ResponsiveContainer></div><div className="chart-footnote"><span>{t('Baseline mean')}: <b>{number(mean, 1)} {kind === 'Water demand' ? 'ML/day' : 'MWh/day'}</b></span><span>{t('Forecasts are indicative, not machine-learning predictions.')}</span></div></Card>
       <div className="two-col">
         <Card className="chart-card"><SectionTitle title="Forecast values" action={<button className="outline-btn" onClick={exportForecast}><Download size={13} /> Export CSV</button>} /><div className="table-scroll small-table"><table><thead><tr><th>DATE</th><th>FORECAST</th><th>LOWER RANGE</th><th>UPPER RANGE</th></tr></thead><tbody>{projected.slice(0, 8).map((item) => <tr key={item.day}><td>{item.day}</td><td>{number(item.forecast, 1)}</td><td>{number(item.lower, 1)}</td><td>{number(item.upper, 1)}</td></tr>)}</tbody></table></div></Card>
-        <Card className="method-card"><div className="method-icon"><CircleHelp size={17} /></div><div><strong>How this forecast works</strong><p>A transparent baseline combines the recent 14-day average, linear trend and a small weekly seasonal adjustment. The uncertainty interval is ±6% of each estimate. Weather and population effects are represented by simulated variables in the sample dataset.</p><div className="method-formula">forecast = rolling mean + trend × horizon + weekly seasonality</div><Badge tone="amber">NOT AN ML MODEL</Badge></div></Card>
+        <Card className="method-card"><div className="method-icon"><CircleHelp size={17} /></div><div><strong>{t('How this forecast works')}</strong><p>{t('A transparent baseline combines the recent 14-day average, linear trend and a small weekly seasonal adjustment. The uncertainty interval is ±6% of each estimate. Weather and population effects are represented by simulated variables in the sample dataset.')}</p><div className="method-formula">forecast = rolling mean + trend × horizon + weekly seasonality</div><Badge tone="amber">NOT AN ML MODEL</Badge></div></Card>
       </div>
     </>
   )
 }
 
 function OptimizationPage({ input, setInput, result, error, onRun }: { input: OptimizationInput; setInput: (value: OptimizationInput) => void; result: OptimizationResult | null; error: string; onRun: () => void }) {
+  const { t } = useLocalization()
   const update = (key: keyof Omit<OptimizationInput, 'weights'>, value: number) => setInput({ ...input, [key]: value })
   const updateWeight = (key: keyof OptimizationInput['weights'], value: number) => setInput({ ...input, weights: { ...input.weights, [key]: value } })
   const weightsTotal = Object.values(input.weights).reduce((sum, weight) => sum + weight, 0)
   return (
     <>
-      <div className="optim-intro"><div className="optim-intro-icon"><SlidersHorizontal size={19} /></div><div><strong>Energy-aware pump dispatch</strong><p>Compare feasible schedules, avoid inefficient part-load operation, and prioritize energy savings while respecting demand, capacity and reservoir reserve.</p></div><Badge tone="blue">ENERGY-AWARE MODEL</Badge></div>
+      <div className="optim-intro"><div className="optim-intro-icon"><SlidersHorizontal size={19} /></div><div><strong>{t('Energy-aware pump dispatch')}</strong><p>{t('Compare feasible schedules, avoid inefficient part-load operation, and prioritize energy savings while respecting demand, capacity and reservoir reserve.')}</p></div><Badge tone="blue">ENERGY-AWARE MODEL</Badge></div>
       <div className="optimization-layout">
         <Card className="optim-input-card">
-          <div className="form-header"><div><span className="eyebrow">SYSTEM PARAMETERS</span><h2>Operating constraints</h2></div><button className="icon-btn mini-btn" title="Reset inputs" onClick={() => setInput(baseOptimisation)}><RefreshCw size={14} /></button></div>
+          <div className="form-header"><div><span className="eyebrow">{t('SYSTEM PARAMETERS')}</span><h2>{t('Operating constraints')}</h2></div><button className="icon-btn mini-btn" title={t('Reset inputs')} onClick={() => setInput(baseOptimisation)}><RefreshCw size={14} /></button></div>
           <div className="input-grid">
             <NumberInput label="Daily water demand" unit="ML" value={input.demandMl} onChange={(value) => update('demandMl', value)} min={0} />
             <NumberInput label="Available water supply" unit="ML" value={input.supplyMl} onChange={(value) => update('supplyMl', value)} min={0} />
@@ -807,16 +840,16 @@ function OptimizationPage({ input, setInput, result, error, onRun }: { input: Op
             <NumberInput label="Minimum reserve" unit="%" value={input.reservePercent} onChange={(value) => update('reservePercent', value)} min={0} max={100} />
             <NumberInput label="Current water loss" unit="%" value={input.waterLossPercent} onChange={(value) => update('waterLossPercent', value)} min={0} max={60} step={0.1} />
           </div>
-          <div className="weight-head"><div><span className="eyebrow">OBJECTIVE PRIORITIES</span><strong>Weighted optimisation</strong></div><button className="outline-btn energy-preset" onClick={() => setInput({ ...input, weights: { cost: 15, energy: 60, water: 15, carbon: 10 } })}>Prioritise energy</button><span className={weightsTotal !== 100 ? 'weight-warning' : ''}>{weightsTotal}% total</span></div>
+          <div className="weight-head"><div><span className="eyebrow">{t('OBJECTIVE PRIORITIES')}</span><strong>{t('Weighted optimisation')}</strong></div><button className="outline-btn energy-preset" onClick={() => setInput({ ...input, weights: { cost: 15, energy: 60, water: 15, carbon: 10 } })}>{t('Prioritise energy')}</button><span className={weightsTotal !== 100 ? 'weight-warning' : ''}>{weightsTotal}% {t('total')}</span></div>
           <div className="weight-sliders">{[
             ['cost', 'Cost minimisation', '#33c6d3'], ['energy', 'Energy efficiency', '#6b9bff'], ['water', 'Water conservation', '#53d994'], ['carbon', 'Carbon reduction', '#b08cff'],
           ].map(([key, label, color]) => <label className="weight-row" key={key}><span>{label}<b>{input.weights[key as keyof OptimizationInput['weights']]}%</b></span><input type="range" min="0" max="100" step="5" value={input.weights[key as keyof OptimizationInput['weights']]} style={{ accentColor: color }} onChange={(event) => updateWeight(key as keyof OptimizationInput['weights'], Number(event.target.value))} /></label>)}</div>
-          <button className="primary-btn run-btn" onClick={onRun}><Play size={14} fill="currentColor" /> RUN OPTIMISATION <ArrowRight size={14} /></button>
-          <div className="input-note"><ShieldCheck size={14} /> Energy and load-efficiency results are model estimates, not measured savings. Feasibility constraints are checked before recommending a schedule.</div>
+          <button className="primary-btn run-btn" onClick={onRun}><Play size={14} fill="currentColor" /> {t('RUN OPTIMISATION')} <ArrowRight size={14} /></button>
+          <div className="input-note"><ShieldCheck size={14} /> {t('Energy and load-efficiency results are model estimates, not measured savings. Feasibility constraints are checked before recommending a schedule.')}</div>
         </Card>
         <div className="optim-results">
           {error && <Card className="error-card"><AlertTriangle size={16} /><div><strong>Optimisation could not run</strong><p>{error}</p></div></Card>}
-          {!result && !error && <Card className="optim-empty"><div className="empty-graphic"><Activity size={26} /></div><h3>Ready to optimise</h3><p>Adjust system inputs and objective weights, then run the solver to generate a schedule and measurable comparisons.</p><div className="empty-checks"><span><Check size={13} /> Capacity constraints</span><span><Check size={13} /> Reservoir reserve</span><span><Check size={13} /> Renewable availability</span></div></Card>}
+          {!result && !error && <Card className="optim-empty"><div className="empty-graphic"><Activity size={26} /></div><h3>{t('Ready to optimise')}</h3><p>{t('Adjust system inputs and objective weights, then run the solver to generate a schedule and measurable comparisons.')}</p><div className="empty-checks"><span><Check size={13} /> {t('Capacity constraints')}</span><span><Check size={13} /> {t('Reservoir reserve')}</span><span><Check size={13} /> {t('Renewable availability')}</span></div></Card>}
           {result && <>
             <Card className="result-banner"><div className="result-icon"><Check size={18} /></div><div><span className="eyebrow">FEASIBLE SOLUTION FOUND</span><strong>Recommended schedule is ready</strong><p>Objective score {number(result.score, 1)} / 100 · all hard constraints satisfied</p></div><Badge tone="green">OPTIMISED</Badge></Card>
             <div className="result-stats">
@@ -836,7 +869,8 @@ function OptimizationPage({ input, setInput, result, error, onRun }: { input: Op
 }
 
 function NumberInput({ label, unit, value, onChange, min, max, step = 1 }: { label: string; unit: string; value: number; onChange: (value: number) => void; min: number; max?: number; step?: number }) {
-  return <label className="number-input"><span>{label}</span><div><input type="number" value={value} min={min} max={max} step={step} onChange={(event) => onChange(Number(event.target.value))} /><small>{unit}</small></div></label>
+  const { t } = useLocalization()
+  return <label className="number-input"><span>{t(label)}</span><div><input type="number" value={value} min={min} max={max} step={step} onChange={(event) => onChange(Number(event.target.value))} /><small>{unit}</small></div></label>
 }
 
 function ResultStat({ label, value, detail, positive }: { label: string; value: string; detail: string; positive?: boolean }) {
@@ -844,24 +878,28 @@ function ResultStat({ label, value, detail, positive }: { label: string; value: 
 }
 
 function MapPage({ onSelect }: { onSelect: (asset: Infrastructure) => void }) {
+  const { t } = useLocalization()
   const [filter, setFilter] = useState('All assets')
   const list = infrastructure.filter((asset) => filter === 'All assets' || asset.type === filter)
-  return <div className="map-page-layout"><Card className="map-card"><div className="map-toolbar"><div><strong>Metrovale network</strong><span>12 infrastructure assets · telemetry simulated</span></div><label><SlidersHorizontal size={13} /><select value={filter} onChange={(event) => setFilter(event.target.value)}><option>All assets</option>{['Treatment plant', 'Reservoir', 'Pumping station', 'Solar installation', 'Distribution zone'].map((type) => <option key={type}>{type}</option>)}</select></label></div><Suspense fallback={<div className="map-loading">Loading interactive map…</div>}><SmartMap assets={list} onSelect={onSelect} /></Suspense></Card><Card className="asset-list-card"><SectionTitle title="Infrastructure assets" action={<Badge tone="muted">{list.length} ITEMS</Badge>} /><div className="asset-list">{list.map((asset) => <button className="asset-list-row" key={asset.id} onClick={() => onSelect(asset)}><span className={`asset-dot ${asset.type.toLowerCase().replaceAll(' ', '-')}`}><MapPin size={14} /></span><span className="asset-list-main"><strong>{asset.name}</strong><span>{asset.type} · {asset.zone}</span></span><span className="asset-list-status"><i className={asset.status === 'Online' ? 'online' : 'offline'} />{asset.status}</span><ChevronRight size={14} /></button>)}</div><div className="asset-list-note"><CloudSun size={15} /> Weather and telemetry readings are simulated for demonstration.</div></Card></div>
+  const types = ['Treatment plant', 'Reservoir', 'Pumping station', 'Solar installation', 'Distribution zone']
+  return <div className="map-page-layout"><Card className="map-card"><div className="map-toolbar"><div><strong>{t('Metrovale network')}</strong><span>{t('12 infrastructure assets · telemetry simulated')}</span></div><label><SlidersHorizontal size={13} /><select value={filter} onChange={(event) => setFilter(event.target.value)}><option value="All assets">{t('All assets')}</option>{types.map((type) => <option key={type} value={type}>{t(type)}</option>)}</select></label></div><Suspense fallback={<div className="map-loading">{t('Loading interactive map…')}</div>}><SmartMap assets={list} onSelect={onSelect} /></Suspense></Card><Card className="asset-list-card"><SectionTitle title="Infrastructure assets" action={<Badge tone="muted">{list.length} ITEMS</Badge>} /><div className="asset-list">{list.map((asset) => <button className="asset-list-row" key={asset.id} onClick={() => onSelect(asset)}><span className={`asset-dot ${asset.type.toLowerCase().replaceAll(' ', '-')}`}><MapPin size={14} /></span><span className="asset-list-main"><strong>{asset.name}</strong><span>{t(asset.type)} · {t(asset.zone)}</span></span><span className="asset-list-status"><i className={asset.status === 'Online' ? 'online' : 'offline'} />{t(asset.status)}</span><ChevronRight size={14} /></button>)}</div><div className="asset-list-note"><CloudSun size={15} /> {t('Weather and telemetry readings are simulated for demonstration.')}</div></Card></div>
 }
 
 function SustainabilityPage() {
+  const { t } = useLocalization()
   return <>
     <div className="stats-grid four-stats"><StatCard title="Carbon emissions" value="31.7" unit="tCO₂ / day" change="6.8%" changeLabel="vs last month" icon={Leaf} tone="green" /><StatCard title="Renewable contribution" value="22.4" unit="%" change="5.6%" changeLabel="vs last month" icon={Sun} tone="amber" /><StatCard title="Water-energy intensity" value="411" unit="kWh / ML" change="3.2%" changeLabel="vs last month" icon={Gauge} tone="blue" /><StatCard title="Estimated savings" value="8.2" unit="tCO₂ / day" change="12.4%" changeLabel="potential" icon={Wind} /></div>
     <div className="two-col"><Card className="chart-card"><SectionTitle title="Carbon emissions trend" action={<Badge tone="blue">tCO₂ / DAY</Badge>} /><div className="chart-large"><ResponsiveContainer width="100%" height="100%"><AreaChart data={dailySeries.slice(-14)} margin={{ left: -20, right: 8, top: 8 }}><defs><linearGradient id="carbonFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#42d78a" stopOpacity={0.2} /><stop offset="100%" stopColor="#42d78a" stopOpacity={0} /></linearGradient></defs><CartesianGrid stroke="#202d3f" vertical={false} /><XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fill: '#71839a', fontSize: 10 }} /><YAxis tickLine={false} axisLine={false} tick={{ fill: '#71839a', fontSize: 10 }} /><Tooltip {...chartTooltip} /><Area type="monotone" dataKey="carbon" stroke="#42d78a" strokeWidth={2} fill="url(#carbonFill)" /></AreaChart></ResponsiveContainer></div></Card>
-      <Card className="chart-card"><SectionTitle title="Baseline vs optimised" action={<Badge tone="green">MODELLED</Badge>} /><div className="sustainability-bars">{[['Carbon emissions', '31.7', '25.4', 80], ['Energy use', '93.8', '88.2', 75], ['Water loss', '8.6%', '7.9%', 68]].map(([label, baseline, optimized, width]) => <div className="sustainability-row" key={label as string}><div><span>{label}</span><strong>{baseline}<small> → {optimized}</small></strong></div><div className="compare-track"><i style={{ width: `${width}%` }} /><b style={{ width: `${Number(width) * 0.8}%` }} /></div><div className="compare-legend"><span><i className="dot-grey" /> Baseline</span><span><i className="dot-green" /> Optimised</span></div></div>)}</div><div className="method-disclaimer"><CircleHelp size={13} /> Optimised values are illustrative model outputs, not measured savings.</div></Card>
+      <Card className="chart-card"><SectionTitle title="Baseline vs optimised" action={<Badge tone="green">MODELLED</Badge>} /><div className="sustainability-bars">{[['Carbon emissions', '31.7', '25.4', 80], ['Energy use', '93.8', '88.2', 75], ['Water loss', '8.6%', '7.9%', 68]].map(([label, baseline, optimized, width]) => <div className="sustainability-row" key={label as string}><div><span>{t(label as string)}</span><strong>{baseline}<small> → {optimized}</small></strong></div><div className="compare-track"><i style={{ width: `${width}%` }} /><b style={{ width: `${Number(width) * 0.8}%` }} /></div><div className="compare-legend"><span><i className="dot-grey" /> {t('Baseline')}</span><span><i className="dot-green" /> {t('Optimised')}</span></div></div>)}</div><div className="method-disclaimer"><CircleHelp size={13} /> {t('Optimised values are illustrative model outputs, not measured savings.')}</div></Card>
     </div>
-    <div className="sustainability-score-row"><Card className="sustainability-score"><div className="sustainability-score-icon"><Leaf size={18} /></div><div><span>SUSTAINABILITY PERFORMANCE SCORE</span><strong>82<span>/100</span></strong><p>Good trajectory · +4 points from last month</p></div><div className="score-progress"><div><i /></div><span>TOP 18% OF TARGET RANGE</span></div></Card><Card className="formula-card"><div className="formula-icon"><CircleHelp size={16} /></div><div><strong>Transparent metric formulas</strong><p>Energy intensity = daily electricity ÷ water volume. Renewable share = renewable generation ÷ total electricity. Estimated CO₂ = grid energy × 0.338 tCO₂/MWh. Water loss = (supply − billed demand) ÷ supply.</p></div></Card></div>
+    <div className="sustainability-score-row"><Card className="sustainability-score"><div className="sustainability-score-icon"><Leaf size={18} /></div><div><span>{t('SUSTAINABILITY PERFORMANCE SCORE')}</span><strong>82<span>/100</span></strong><p>{t('Good trajectory · +4 points from last month')}</p></div><div className="score-progress"><div><i /></div><span>{t('TOP 18% OF TARGET RANGE')}</span></div></Card><Card className="formula-card"><div className="formula-icon"><CircleHelp size={16} /></div><div><strong>{t('Transparent metric formulas')}</strong><p>{t('Energy intensity = daily electricity ÷ water volume. Renewable share = renewable generation ÷ total electricity. Estimated CO₂ = grid energy × 0.338 tCO₂/MWh. Water loss = (supply − billed demand) ÷ supply.')}</p></div></Card></div>
   </>
 }
 
 function ReportsPage({ zone, setZone, period, setPeriod, ready, setReady, onCsv, onPdf, generatedAt }: { zone: string; setZone: (value: string) => void; period: string; setPeriod: (value: string) => void; ready: boolean; setReady: (value: boolean) => void; onCsv: () => void; onPdf: () => void; generatedAt: Date }) {
+  const { t } = useLocalization()
   return <>
-    <Card className="report-builder"><div className="report-builder-icon"><Download size={18} /></div><div className="report-builder-copy"><span className="eyebrow">REPORT BUILDER</span><h2>Performance report</h2><p>Generate an exportable summary of water, energy and sustainability performance for a selected period and zone.</p></div><div className="report-filters"><label>DATE RANGE<select value={period} onChange={(event) => setPeriod(event.target.value)}><option>Last 7 days</option><option>Last 30 days</option><option>Last 90 days</option></select></label><label>URBAN ZONE<select value={zone} onChange={(event) => setZone(event.target.value)}><option>All zones</option>{zones.filter((item) => item.name !== 'All zones').map((item) => <option key={item.name}>{item.name}</option>)}</select></label><button className="primary-btn" onClick={() => setReady(true)}><Plus size={14} /> Generate report</button></div></Card>
+    <Card className="report-builder"><div className="report-builder-icon"><Download size={18} /></div><div className="report-builder-copy"><span className="eyebrow">{t('REPORT BUILDER')}</span><h2>{t('Performance report')}</h2><p>{t('Generate an exportable summary of water, energy and sustainability performance for a selected period and zone.')}</p></div><div className="report-filters"><label>{t('DATE RANGE')}<select value={period} onChange={(event) => setPeriod(event.target.value)}>{['Last 7 days', 'Last 30 days', 'Last 90 days'].map((value) => <option value={value} key={value}>{t(value)}</option>)}</select></label><label>{t('URBAN ZONE')}<select value={zone} onChange={(event) => setZone(event.target.value)}><option value="All zones">{t('All zones')}</option>{zones.filter((item) => item.name !== 'All zones').map((item) => <option key={item.name} value={item.name}>{t(item.name)}</option>)}</select></label><button className="primary-btn" onClick={() => setReady(true)}><Plus size={14} /> {t('Generate report')}</button></div></Card>
     {ready && <Card className="report-preview"><div className="report-preview-heading"><div><span className="eyebrow">REPORT PREVIEW</span><h2>NEXUS Urban Performance Brief</h2><span>Generated {generatedAt.toLocaleString()} · {period} · {zone}</span></div><Badge tone="green">READY TO EXPORT</Badge></div><div className="report-kpis"><div><span>Water consumption</span><strong>228.4 ML/day</strong></div><div><span>Energy consumption</span><strong>93.8 MWh/day</strong></div><div><span>Water loss</span><strong>8.6%</strong></div><div><span>CO₂ emissions</span><strong>31.7 t/day</strong></div></div><div className="report-recommendation"><Sparkles size={15} /><span><b>Recommendation:</b> Prioritise pressure and meter review in the highest-loss zone; shift flexible pumping toward lower-tariff periods where reserve constraints permit.</span></div><div className="report-export"><button className="outline-btn" onClick={onCsv}><Download size={14} /> Export CSV</button><button className="primary-btn" onClick={onPdf}><Download size={14} /> Export PDF</button></div></Card>}
     <div className="report-types"><SectionTitle title="Available report sections" /><div className="report-type-grid">{[['Water performance', Droplets, 'Supply, demand, reservoir status and leakage estimates.'], ['Energy performance', Zap, 'Consumption, energy intensity, costs and renewable share.'], ['Forecast results', Activity, 'Baseline demand outlook and uncertainty intervals.'], ['Optimisation outcomes', SlidersHorizontal, 'Feasibility, recommended dispatch and modelled savings.'], ['Sustainability metrics', Leaf, 'Emissions, conservation progress and transparent formulas.']].map(([label, Icon, desc]) => { const ItemIcon = Icon as typeof Activity; return <Card className="report-type" key={label as string}><span><ItemIcon size={16} /></span><strong>{label as string}</strong><p>{desc as string}</p><Check size={14} className="included-check" /></Card> })}</div></div>
   </>
@@ -871,15 +909,14 @@ function SettingsPage({ mode, setMode, configured, connected, refreshing, onRefr
   mode: 'simulation' | 'connected'; setMode: (mode: 'simulation' | 'connected') => void; configured: boolean; connected: boolean; refreshing: boolean; onRefresh: () => void; onReset: () => void; authEmail: string; setAuthEmail: (value: string) => void; authPassword: string; setAuthPassword: (value: string) => void; authMessage: string; onAuth: (event: React.FormEvent) => void; userEmail: string; demoRole: 'admin' | 'user' | null; canResetDemo: boolean; onSignOut: () => void
   alertsList: AlertItem[]; onReadAlert: (id: string) => void
 }) {
+  const { t } = useLocalization()
   return <div className="settings-layout">
     <div className="settings-main">
-      <Card className="settings-card"><div className="settings-card-heading"><div className="settings-icon"><Activity size={17} /></div><div><h2>Data source</h2><p>Choose between the built-in city simulation and your configured Supabase project.</p></div></div><div className="data-source-options"><button className={`source-option ${mode === 'simulation' ? 'source-active' : ''}`} onClick={() => setMode('simulation')}><span className="source-radio" /><div><strong>Simulation data</strong><p>Use persistent demonstration values stored in your browser.</p></div><Badge tone="blue">AVAILABLE</Badge></button><button className={`source-option ${mode === 'connected' ? 'source-active' : ''}`} disabled={!configured} onClick={() => setMode('connected')}><span className="source-radio" /><div><strong>Connected data</strong><p>{configured ? 'Query your configured Supabase project.' : 'Add Supabase credentials to enable a connection.'}</p></div><Badge tone={connected ? 'green' : 'muted'}>{connected ? 'CONNECTED' : configured ? 'AVAILABLE' : 'NOT CONFIGURED'}</Badge></button></div><div className="settings-actions"><button className="outline-btn" onClick={onRefresh} disabled={refreshing}><RefreshCw size={13} className={refreshing ? 'spinning' : ''} /> Test and refresh connection</button><span>{connected ? 'Last check successful' : 'Simulation data is active'}</span></div></Card>
-      <Card className="settings-card"><div className="settings-card-heading"><div className="settings-icon violet"><ShieldCheck size={17} /></div><div><h2>Authentication</h2><p>{demoRole ? 'Prototype demo account; this role is not a security boundary.' : 'Supabase email/password authentication is available when credentials are configured.'}</p></div></div>{userEmail ? <div className="auth-signed-in"><span className="profile-pic">{demoRole === 'admin' ? 'AD' : demoRole === 'user' ? 'US' : 'JD'}</span><span>{demoRole ? `Demo ${demoRole} session` : 'Signed in as'} <b>{userEmail}</b></span><button className="outline-btn" onClick={onSignOut}>Sign out</button></div> : <form className="auth-form" onSubmit={onAuth}><label>Email<input type="email" placeholder="you@city.gov" required value={authEmail} onChange={(event) => setAuthEmail(event.target.value)} /></label><label>Password<input type="password" placeholder="Your password" required value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} /></label><button className="primary-btn" type="submit">Sign in</button></form>}{authMessage && <div className="auth-message">{authMessage}</div>}</Card>
-      <Card className="settings-card"><div className="settings-card-heading"><div className="settings-icon amber"><RefreshCw size={16} /></div><div><h2>Demonstration workspace</h2><p>Reset stored alert statuses, optimisation inputs and the demo session to default values.</p></div></div><div className="reset-row"><div><strong>Reset demo data</strong><span>{canResetDemo ? 'This does not affect a connected Supabase project.' : 'Only the demo administrator can reset workspace data.'}</span></div><button className="outline-btn danger-outline" onClick={onReset} disabled={!canResetDemo}>Reset to defaults</button></div></Card>
-      <Card className="settings-card"><div className="settings-card-heading"><div className="settings-icon green"><Bell size={16} /></div><div><h2>System alerts</h2><p>Update an alert status to clear it from the overview unread list.</p></div></div><div className="settings-alert-list">{initialAlerts.map((alert) => <div className="settings-alert-row" key={alert.id}><span className={`alert-symbol ${alert.severity}`}><AlertTriangle size={14} /></span><div><strong>{alert.title}</strong><span>{alert.zone} · {alert.time}</span></div>{alertsList.find((item) => item.id === alert.id)?.read ? <Badge tone="muted">ACKNOWLEDGED</Badge> : <button className="outline-btn" onClick={() => onReadAlert(alert.id)}>Acknowledge</button>}</div>)}</div></Card>
+      <Card className="settings-card"><div className="settings-card-heading"><div className="settings-icon"><Activity size={17} /></div><div><h2>{t('Data source')}</h2><p>{t('Choose between the built-in city simulation and your configured Supabase project.')}</p></div></div><div className="data-source-options"><button className={`source-option ${mode === 'simulation' ? 'source-active' : ''}`} onClick={() => setMode('simulation')}><span className="source-radio" /><div><strong>{t('Simulation data')}</strong><p>{t('Use persistent demonstration values stored in your browser.')}</p></div><Badge tone="blue">AVAILABLE</Badge></button><button className={`source-option ${mode === 'connected' ? 'source-active' : ''}`} disabled={!configured} onClick={() => setMode('connected')}><span className="source-radio" /><div><strong>{t('Connected data')}</strong><p>{t(configured ? 'Query your configured Supabase project.' : 'Add Supabase credentials to enable a connection.')}</p></div><Badge tone={connected ? 'green' : 'muted'}>{connected ? 'CONNECTED' : configured ? 'AVAILABLE' : 'NOT CONFIGURED'}</Badge></button></div><div className="settings-actions"><button className="outline-btn" onClick={onRefresh} disabled={refreshing}><RefreshCw size={13} className={refreshing ? 'spinning' : ''} /> {t('Test and refresh connection')}</button><span>{t(connected ? 'Last check successful' : 'Simulation data is active')}</span></div></Card>
+      <Card className="settings-card"><div className="settings-card-heading"><div className="settings-icon violet"><ShieldCheck size={17} /></div><div><h2>{t('Authentication')}</h2><p>{t(demoRole ? 'Prototype demo account; this role is not a security boundary.' : 'Supabase email/password authentication is available when credentials are configured.')}</p></div></div>{userEmail ? <div className="auth-signed-in"><span className="profile-pic">{demoRole === 'admin' ? 'AD' : demoRole === 'user' ? 'US' : 'JD'}</span><span>{t(demoRole ? `Demo ${demoRole} session` : 'Signed in as')} <b>{userEmail}</b></span><button className="outline-btn" onClick={onSignOut}>{t('Sign out')}</button></div> : <form className="auth-form" onSubmit={onAuth}><label>{t('Email')}<input type="email" placeholder="you@city.gov" required value={authEmail} onChange={(event) => setAuthEmail(event.target.value)} /></label><label>{t('Password')}<input type="password" placeholder={t('Your password')} required value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} /></label><button className="primary-btn" type="submit">{t('Sign in')}</button></form>}{authMessage && <div className="auth-message">{authMessage}</div>}</Card>
+      <Card className="settings-card"><div className="settings-card-heading"><div className="settings-icon amber"><RefreshCw size={16} /></div><div><h2>{t('Demonstration workspace')}</h2><p>{t('Reset stored alert statuses, optimisation inputs and the demo session to default values.')}</p></div></div><div className="reset-row"><div><strong>{t('Reset demo data')}</strong><span>{t(canResetDemo ? 'This does not affect a connected Supabase project.' : 'Only the demo administrator can reset workspace data.')}</span></div><button className="outline-btn danger-outline" onClick={onReset} disabled={!canResetDemo}>{t('Reset to defaults')}</button></div></Card>
+      <Card className="settings-card"><div className="settings-card-heading"><div className="settings-icon green"><Bell size={16} /></div><div><h2>{t('System alerts')}</h2><p>{t('Update an alert status to clear it from the overview unread list.')}</p></div></div><div className="settings-alert-list">{initialAlerts.map((alert) => <div className="settings-alert-row" key={alert.id}><span className={`alert-symbol ${alert.severity}`}><AlertTriangle size={14} /></span><div><strong>{alert.title}</strong><span>{t(alert.zone)} · {t(alert.time)}</span></div>{alertsList.find((item) => item.id === alert.id)?.read ? <Badge tone="muted">ACKNOWLEDGED</Badge> : <button className="outline-btn" onClick={() => onReadAlert(alert.id)}>{t('Acknowledge')}</button>}</div>)}</div></Card>
     </div>
     <div className="settings-side"><Card className="connection-card"><span className="connection-icon"><ShieldCheck size={19} /></span><span className="eyebrow">CONNECTION STATUS</span><strong>{configured ? connected ? 'Supabase connected' : 'Ready to connect' : 'Demo environment'}</strong><p>{configured ? 'The browser client uses the public anon key and Row Level Security.' : 'The application runs locally without requiring hardware or cloud credentials.'}</p><div className="connection-tags"><Badge tone={configured ? 'green' : 'blue'}>{configured ? 'SUPABASE' : 'LOCAL MODE'}</Badge><Badge tone="green">RLS READY</Badge></div></Card><Card className="settings-note"><strong>Demo data notice</strong><p>All readings and forecast outputs are synthetic and intended for product demonstrations. Validate any real-world operating decision against utility data and engineering review.</p></Card><Card className="settings-note"><strong>Integration setup</strong><p>Copy <code>.env.example</code> to <code>.env.local</code>, set the Supabase project URL and anon key, then run the schema in the Supabase SQL editor.</p></Card></div>
   </div>
 }
-
-export default App
